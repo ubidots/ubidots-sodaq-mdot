@@ -29,7 +29,7 @@
 
 class Ubidots {
  public:
-	Ubidots(char* token);
+	Ubidots(char* token=NULL);
 	void setOnBee(int vcc33Pin, int onoffPin, int statusPin);
 	bool loraSend(float data);
 	char* readData(uint16_t timeout);
