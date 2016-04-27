@@ -26,12 +26,19 @@
 #include <Stream.h>
 
 #define DEFAULT_BUFFER_SIZE      64
+#define MAX_VALUES 4
+
+typedef struct Value {
+  char  *varName;
+  float varValue;
+} Value;
 
 class Ubidots {
  public:
 	Ubidots(char* token=NULL);
 	void setOnBee(int vcc33Pin, int onoffPin, int statusPin);
-	bool loraSend(float data);
+	bool loraSend();
+	void add(char* variableName, float value);
 	char* readData(uint16_t timeout);
     bool loraConnection(char* ssid, char* pass, char* band);
     void flushInput();
@@ -53,5 +60,7 @@ class Ubidots {
 	int8_t _vcc33Pin;
     int8_t _onoffPin;
     int8_t _statusPin;
+    int currentValue;
+    Value * val;
 };
 #endif

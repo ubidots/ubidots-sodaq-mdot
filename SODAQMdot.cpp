@@ -34,7 +34,8 @@ Ubidots::Ubidots(char* token) {
     _vcc33Pin = -1;
     _onoffPin = -1;
     _statusPin = -1;
-
+    currentValue = 0;
+    val = (Value *)malloc(MAX_VALUES*sizeof(Value));
 }
 void Ubidots::setOnBee(int vcc33Pin, int onoffPin, int statusPin) {
   init(vcc33Pin, onoffPin, statusPin);
@@ -91,16 +92,28 @@ ok:
   return bufcnt;
 
 }
-bool Ubidots::loraSend(float data) {
-    String dat;
-    dat = String(data, 3);
+bool Ubidots::loraSend() {
+    String message = "";
+    String values;
+    int i;
+    for (i = 0; i < currentValue; i++) {
+      values = String(((val + i)->varValue), 2);
+      message += String((val + i)->varName);
+      message += ":";
+      message += values;
+      message += ",";
+    }
+    SerialUSB.println(message);
     Serial1.print("AT+SEND ");
-    Serial1.println(dat);
+    Serial1.println(message);
     if (!waitForOK(6000)) {
       SerialUSB.println("Connection failing");
+      currentValue = 0;
       return false;
     }
     delay(1000);
+    currentValue = 0;
+    return true;
 }
 bool Ubidots::resetLora() {
     Serial1.println("AT");
@@ -114,6 +127,14 @@ bool Ubidots::resetLora() {
     }
     return true;
 
+}
+void Ubidots::add(char* variableName, float value) {
+  (val+currentValue)->varName = variableName;
+  (val+currentValue)->varValue = value;
+  currentValue++;
+  if (currentValue>MAX_VALUES) {
+    currentValue = MAX_VALUES;
+  }
 }
 /** 
  * This function is to set the APN, USER and PASSWORD
@@ -158,17 +179,22 @@ bool Ubidots::loraConnection(char* ssid, char* pass, char* band) {
       SerialUSB.println("Fail at stting up of LoRa sub band");
       return false;
     }
-    Serial1.println("AT+TXDR=10");
+    Serial1.println("AT+TXP=20");
     if (!waitForOK(6000)) {
-      SerialUSB.println("Fail at stting up of ACK");
+      SerialUSB.println("Fail at stting up TXP");
+      return false;
+    }
+    Serial1.println("AT+TXDR=DR4");
+    if (!waitForOK(6000)) {
+      SerialUSB.println("Fail at stting TXDR");
       return false;
     }
     Serial1.println("AT+FEC=1");
     if (!waitForOK(6000)) {
-      SerialUSB.println("Fail at stting up of ACK");
+      SerialUSB.println("Fail at stting up frequenci");
       return false;
     }
-    Serial1.println("AT+ACK=1");
+    Serial1.println("AT+ACK=0");
     if (!waitForOK(6000)) {
       SerialUSB.println("Fail at stting up of ACK");
       return false;
@@ -183,6 +209,7 @@ bool Ubidots::loraConnection(char* ssid, char* pass, char* band) {
       SerialUSB.println("Fail at joining network");
       return false;
     }
+    delay(10000);
     return true;
 }
 

@@ -26,8 +26,14 @@ void setup()
 }
 
 void loop() {
-    float value = analogRead(A0);
-    loraClient.add("Variable_Name",value);
+    float value0 = analogRead(A0);
+    float value1 = analogRead(A1);
+    float value2 = analogRead(A2);
+    float value3 = analogRead(A3);
+    loraClient.add("Variable_Name_0",value0);
+    loraClient.add("Variable_Name_1",value1);
+    loraClient.add("Variable_Name_2",value2);
+    loraClient.add("Variable_Name_3",value3);
     loraClient.loraSend();
     delay(1000);
 }
